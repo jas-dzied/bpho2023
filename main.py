@@ -2,7 +2,7 @@ import gi
 from matplotlib.animation import FuncAnimation
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
-from gi.repository import Gtk, Gdk, Adw
+from gi.repository import Gtk, Gdk, Adw, GdkPixbuf
 import sys
 from enum import Enum
 
@@ -177,7 +177,7 @@ class Application(Gtk.ApplicationWindow):
             def create_update(index):
                 def update(_):
                     time_elapsed = (time.time_ns() - start_time) / 1000000000
-                    theta = (2*np.pi * time_elapsed) * ANIMATION_SPEED / ORBITAL_PERIOD[index]
+                    theta = (2*np.pi * time_elapsed) * ANIMATION_SPEED / ORBITAL_PERIOD[index] * DIRECTION[index]
                     x, y = calculate_xy(theta, SEMI_MAJOR_AXIS[index], ECCENTRICITY[index])
                     if not isinstance(self.planets[index], tuple):
                         self.planets[index].set_data([x], [y])
@@ -267,7 +267,7 @@ class Application(Gtk.ApplicationWindow):
             def create_update(index):
                 def update(_):
                     time_elapsed = (time.time_ns() - start_time) / 1000000000
-                    theta = (2*np.pi * time_elapsed) * ANIMATION_SPEED / ORBITAL_PERIOD[index]
+                    theta = (2*np.pi * time_elapsed) * ANIMATION_SPEED / ORBITAL_PERIOD[index] * DIRECTION[index]
                     x, y, z = calculate_xyz(theta, SEMI_MAJOR_AXIS[index], ECCENTRICITY[index], BETA[index])
                     if not isinstance(self.planets[index], tuple):
                         self.planets[index].set_data([x], [y])
@@ -557,7 +557,161 @@ class Application(Gtk.ApplicationWindow):
         paragraph = Gtk.Label(label="by Jan Dziedziak and Sasan Hapuarachchi")
         paragraph.set_css_classes(['p2'])
         vbox.append(paragraph)
-        self.set_child(vbox)
+
+        paragraph = Gtk.Label(label="Technical explanation of challenges")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="Challenge 1")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="Using, the data provided in the challenge document, we gathered a set of points by taking the semi-major axis of each planet, taking it to the power of (3/2) \nand using that as the x coordinate, and then using the corresponding orbital period for the y axis.")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="After plotting all the points, we could then just plot a line of x=y to compare to.")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="Challenge 2")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="We started by systematically sampling a set of points on the interval 0 to 2pi.")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="For each of these, we used the sampled value as an angle, theta, and used the following formula to calculate the corresponding distance from the origin at each point:")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="r = a(1 - epsilon^2) / (1 - epsilon * cos(theta))")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="This provided us polar coordinates for a set of points on the planet's orbit, which could then be converted to cartesion coordinates simply:")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="x = r * cos(theta)")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+        paragraph = Gtk.Label(label="y = r * sin(theta)")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="This gave us a set of coordinates we could plot using any plotting library. In our case, we chose to use matplotlib.")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="Challenge 3")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="For challenge 3, as it required an animation, we chose to keep a global clock that measured the time passed since the program started.\nWhenever a new frame was rendered, the time passed was calculated, and then the percentage of the orbit that had been completed could be calculated by dividing by the orbital period.\nFinally, multiplying by 2pi would then give a polar angle, and a similar method to challenge 2 was used to calculate the planet's coordinates.")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="Challenge 4")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="This challenge was very similar to the previous one, meaning only a very small change was requierd.\nThe process of finding theta and r were the same, but different equations were used to find the x, y and z coordinates:")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="x = r * cos(theta) * cos(beta)")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+        paragraph = Gtk.Label(label="y = r * sin(theta)")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+        paragraph = Gtk.Label(label="z = r * cos(theta) * sin(beta)")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="Challenge 5")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="First, we simply drew a straight line plotting the orbit of a planet without eccentricity.")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="For the second line, we used simpson's rule of integration, with the following python code:")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        text = """def simpsons_integral(a, b, h, f):
+    num_strips = int((b - a) / h)
+    y = lambda x: f(a + x*h)
+
+    strips = []
+    strips.append(y(0))
+    for i in range(1, num_strips-1):
+        coefficient = (i % 2) * 2 + 2
+        strips.append(coefficient * y(i))
+    strips.append(y(num_strips-1))
+
+    return 1/3 * h * sum(strips)"""
+        paragraph = Gtk.Label(label=text)
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="We gathered several samples over the interval 0 to 6pi, and calculated the time at each point using the formula:")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="t = P(1 - epsilon^2)^(3/2) * 1/2pi * ∫ dtheta / (1 - epsilon * cos(theta))^2")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="Using 0 as the lower bound for the integral and the current angle as the upper bound.")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="Finally, we sampled the dataset using points from the interval 0 to 3x the orbital period of the planet, which gave us the data to plot out graph.")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="Challenge 6")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="For challenge 6, similar to challenge 3, we calculated the position of the two selected planets at a given time, but this time using a set of points regularly sampled over an interval.\nFor each sample, we calculated the two positions, and drew a line between them on our graph.")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="On top of the lines, we chose to also draw the orbits of the two planets, to give a clearer view.")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="Challenge 7")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="For this challenge, we used a very similar method to challenge 2.\nHowever, instead of just calculating the plantes position at the given angle, we also calculated the position of the centre planet, which meant we could find the relative coordinates:")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="relative x = x - target x")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+        paragraph = Gtk.Label(label="relative y = y - target y")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+        paragraph = Gtk.Label(label="relative z = z - target z")
+        paragraph.set_css_classes(['p2'])
+        vbox.append(paragraph)
+
+        paragraph = Gtk.Label(label="This gave us a set of coordinates that we could easily plot.")
+        paragraph.set_css_classes(['p3'])
+        vbox.append(paragraph)
+
+        sw = Gtk.ScrolledWindow(margin_top=10, margin_bottom=10, margin_start=10, margin_end=10)
+        sw.set_child(vbox)
+        self.set_child(sw)
 
     def clear_all(self):
         self.animations = []

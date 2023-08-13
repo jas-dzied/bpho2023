@@ -44,7 +44,7 @@ def create_init(index):
 def create_update(index):
     def update(_):
         time_elapsed = (time.time_ns() - start_time) / 1000000000
-        theta = (2*np.pi * time_elapsed) * ANIMATION_SPEED / ORBITAL_PERIOD[index]
+        theta = (2*np.pi * time_elapsed) * ANIMATION_SPEED / ORBITAL_PERIOD[index] * DIRECTION[index]
         x, y = calculate_xy(theta, SEMI_MAJOR_AXIS[index], ECCENTRICITY[index])
         planets[index].set_data([x], [y])
         return planets[index],
